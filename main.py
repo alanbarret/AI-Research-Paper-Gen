@@ -421,8 +421,8 @@ def index_texts(texts):
     """
     Index texts using FAISS.
     """
-    vectorizer = TfidfVectorizer()
-    vectors = vectorizer.fit_transform(texts).toarray()
+    vectorizer = TfidfVectorizer().fit_transform(texts)
+    vectors = vectorizer.toarray()
     index = faiss.IndexFlatL2(vectors.shape[1])
     index.add(vectors)
     return index, vectorizer
@@ -435,25 +435,6 @@ def retrieve_passages(query, index, vectorizer, texts, top_k=5):
     distances, indices = index.search(query_vector, top_k)
     retrieved_passages = [texts[i] for i in indices[0]]
     return retrieved_passages
-
-def split_text(text, max_tokens=1500):
-    """
-    Splits text into smaller chunks to avoid exceeding the API's size limit.
-    """
-    words = text.split()
-    chunks = []
-    current_chunk = []
-
-    for word in words:
-        current_chunk.append(word)
-        if len(current_chunk) >= max_tokens:
-            chunks.append(' '.join(current_chunk))
-            current_chunk = []
-
-    if current_chunk:
-        chunks.append(' '.join(current_chunk))
-
-    return chunks
 
 # Initialize
 if "button_disabled" not in st.session_state:
@@ -574,12 +555,7 @@ try:
                     st.success(f"Extracted text from {pdf.name}")
 
             st.session_state.preprocessed_texts = preprocess_texts(st.session_state.extracted_texts)
-            
-            # Ensure there are non-stop words in the texts
-            if len(st.session_state.preprocessed_texts) > 0:
-                st.session_state.index, st.session_state.vectorizer = index_texts(st.session_state.preprocessed_texts)
-            else:
-                st.error("Uploaded documents do not contain enough content for processing. Please upload different documents.")
+            st.session_state.index, st.session_state.vectorizer = index_texts(st.session_state.preprocessed_texts)
 
         # Generate button
         submitted = st.form_submit_button(
@@ -646,35 +622,22 @@ try:
                 def stream_section_content(sections):
                     for title, content in sections.items():
                         if isinstance(content, str):
-                            # Retrieve passages related to the section
-                            retrieved_passages = retrieve_passages(
-                                title + ": " + content,
-                                st.session_state.index,
-                                st.session_state.vectorizer,
-                                st.session_state.preprocessed_texts
+                            content_stream = generate_section(
+                                title + ": " + content, additional_instructions, language
                             )
-                            context = "\n\n".join(retrieved_passages)
-                            prompt_with_context = title + ": " + content + "\n\n" + context
-                            
-                            # Split the prompt into smaller chunks
-                            chunks = split_text(prompt_with_context)
+                            for chunk in content_stream:
+                                # Check if GenerationStatistics data is returned instead of str tokens
+                                chunk_data = chunk
+                                if type(chunk_data) == GenerationStatistics:
+                                    total_generation_statistics.add(chunk_data)
 
-                            for chunk in chunks:
-                                content_stream = generate_section(
-                                    chunk, additional_instructions, language
-                                )
-                                for content_chunk in content_stream:
-                                    # Check if GenerationStatistics data is returned instead of str tokens
-                                    if isinstance(content_chunk, GenerationStatistics):
-                                        total_generation_statistics.add(content_chunk)
+                                    st.session_state.statistics_text = str(
+                                        total_generation_statistics
+                                    )
+                                    display_statistics()
 
-                                        st.session_state.statistics_text = str(
-                                            total_generation_statistics
-                                        )
-                                        display_statistics()
-
-                                    elif content_chunk:
-                                        st.session_state.paper.update_content(title, content_chunk)
+                                elif chunk != None:
+                                    st.session_state.paper.update_content(title, chunk)
                         elif isinstance(content, dict):
                             stream_section_content(content)
 
