@@ -69,3 +69,4 @@ zopfli==0.2.3
 python-dotenv==1.0.1
 PyMuPDF==1.24.7
 scikit-learn==1.5.1
+faiss-cpu==1.8.0.post1
