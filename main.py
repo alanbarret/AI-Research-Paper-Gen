@@ -249,20 +249,25 @@ def create_pdf_file(content: str) -> str:
         st.error(f"Error creating PDF file: {e}")
         return None
 
-def generate_paper_title(prompt: str):
+def generate_paper_title(prompt: str, language: str):
     """
     Generate a research paper title using AI.
     """
+    if language == "Arabic":
+        prompt_language = "العربية"
+    else:
+        prompt_language = "English"
+        
     completion = st.session_state.groq.chat.completions.create(
         model="llama3-70b-8192",
         messages=[
             {
                 "role": "system",
-                "content": "Generate suitable research paper titles for the provided topics. There is only one generated paper title! Don't give any explanation or add any symbols, just write the title of the paper. The requirement for this title is that it must be between 7 and 25 words long, and it must be attractive enough!"
+                "content": f"Generate suitable research paper titles for the provided topics in {prompt_language}. There is only one generated paper title! Don't give any explanation or add any symbols, just write the title of the paper. The requirement for this title is that it must be between 7 and 25 words long, and it must be attractive enough!"
             },
             {
                 "role": "user",
-                "content": f"Generate a research paper title for the following topic. There is only one generated paper title! Don't give any explanation or add any symbols, just write the title of the paper. The requirement for this title is that it must be at least 7 words and 25 words long, and it must be attractive enough:\n\n{prompt}"
+                "content": f"Generate a research paper title for the following topic in {prompt_language}. There is only one generated paper title! Don't give any explanation or add any symbols, just write the title of the paper. The requirement for this title is that it must be at least 7 words and 25 words long, and it must be attractive enough:\n\n{prompt}"
             }
         ],
         temperature=0.7,
@@ -274,20 +279,25 @@ def generate_paper_title(prompt: str):
 
     return completion.choices[0].message.content.strip()
 
-def generate_paper_structure(prompt: str):
+def generate_paper_structure(prompt: str, language: str):
     """
     Returns research paper structure content as well as total tokens and total time for generation.
     """
+    if language == "Arabic":
+        prompt_language = "العربية"
+    else:
+        prompt_language = "English"
+        
     completion = st.session_state.groq.chat.completions.create(
         model="llama3-70b-8192",
         messages=[
             {
                 "role": "system",
-                "content": 'Write in JSON format:\n\n{"Title of section goes here":"Description of section goes here",\n"Title of section goes here":{"Title of section goes here":"Description of section goes here","Title of section goes here":"Description of section goes here","Title of section goes here":"Description of section goes here"}}',
+                "content": f'Write in JSON format in {prompt_language}:\n\n{{"Title of section goes here":"Description of section goes here",\n"Title of section goes here":{{"Title of section goes here":"Description of section goes here","Title of section goes here":"Description of section goes here","Title of section goes here":"Description of section goes here"}}}}',
             },
             {
                 "role": "user",
-                "content": f"Write a comprehensive structure, omiting introduction and conclusion sections (forward, author's note, summary), for a long (>300 page) research paper. It is very important that use the following subject and additional instructions to write the paper. \n\n<subject>{prompt}</subject>\n\n<additional_instructions>{additional_instructions}</additional_instructions>",
+                "content": f"Write a comprehensive structure, omiting introduction and conclusion sections (forward, author's note, summary), for a long (>300 page) research paper in {prompt_language}. It is very important that use the following subject and additional instructions to write the paper. \n\n<subject>{prompt}</subject>\n\n<additional_instructions>{additional_instructions}</additional_instructions>",
             },
         ],
         temperature=0.3,
@@ -310,17 +320,22 @@ def generate_paper_structure(prompt: str):
 
     return statistics_to_return, completion.choices[0].message.content
 
-def generate_section(prompt: str, additional_instructions: str):
+def generate_section(prompt: str, additional_instructions: str, language: str):
+    if language == "Arabic":
+        prompt_language = "العربية"
+    else:
+        prompt_language = "English"
+        
     stream = st.session_state.groq.chat.completions.create(
         model="llama3-8b-8192",
         messages=[
             {
                 "role": "system",
-                "content": "You are an expert writer. Generate a long, comprehensive, structured chapter for the section provided. If additional instructions are provided, consider them very important. Only output the content.",
+                "content": f"You are an expert writer. Generate a long, comprehensive, structured chapter for the section provided in {prompt_language}. If additional instructions are provided, consider them very important. Only output the content.",
             },
             {
                 "role": "user",
-                "content": f"Generate a long, comprehensive, structured chapter. Use the following section and important instructions:\n\n<section_title>{prompt}</section_title>\n\n<additional_instructions>{additional_instructions}</additional_instructions>",
+                "content": f"Generate a long, comprehensive, structured chapter in {prompt_language}. Use the following section and important instructions:\n\n<section_title>{prompt}</section_title>\n\n<additional_instructions>{additional_instructions}</additional_instructions>",
             },
         ],
         temperature=0.3,
@@ -359,22 +374,27 @@ def extract_text_from_pdf(file):
         text += page.get_text("text")
     return text
 
-def generate_research_citations(extracted_texts):
+def generate_research_citations(extracted_texts, language: str):
     """
     Generate proper citations for the extracted texts.
     """
     citations = []
     for text in extracted_texts:
+        if language == "Arabic":
+            prompt_language = "العربية"
+        else:
+            prompt_language = "English"
+            
         citation = st.session_state.groq.chat.completions.create(
             model="llama3-70b-8192",
             messages=[
                 {
                     "role": "system",
-                    "content": "Generate proper citations in APA format for the given extracted text from a research paper."
+                    "content": f"Generate proper citations in APA format for the given extracted text from a research paper in {prompt_language}."
                 },
                 {
                     "role": "user",
-                    "content": f"Generate a citation for the following text:\n\n{text}"
+                    "content": f"Generate a citation for the following text in {prompt_language}:\n\n{text}"
                 }
             ],
             temperature=0.7,
@@ -511,6 +531,13 @@ try:
             value="",
         )
 
+        # Language selection
+        language = st.selectbox(
+            "Choose the language for the research paper",
+            options=["English", "Arabic"],
+            index=0
+        )
+
         # Upload PDFs
         uploaded_pdfs = st.file_uploader(
             "Upload related research PDFs",
@@ -567,13 +594,14 @@ try:
                 st.session_state.groq = Groq(api_key=groq_input_key)
 
             large_model_generation_statistics, paper_structure = generate_paper_structure(
-                topic_text
+                topic_text,
+                language
             )
             # Generate AI research paper title
-            st.session_state.paper_title = generate_paper_title(topic_text)
+            st.session_state.paper_title = generate_paper_title(topic_text, language)
             st.write(f"## {st.session_state.paper_title}")
 
-            large_model_generation_statistics, paper_structure = generate_paper_structure(topic_text)
+            large_model_generation_statistics, paper_structure = generate_paper_structure(topic_text, language)
 
             total_generation_statistics = GenerationStatistics(
                 model_name="llama3-8b-8192"
@@ -595,7 +623,7 @@ try:
                     for title, content in sections.items():
                         if isinstance(content, str):
                             content_stream = generate_section(
-                                title + ": " + content, additional_instructions
+                                title + ": " + content, additional_instructions, language
                             )
                             for chunk in content_stream:
                                 # Check if GenerationStatistics data is returned instead of str tokens
@@ -616,7 +644,7 @@ try:
                 stream_section_content(paper_structure_json)
 
                 # Append extracted texts with citations
-                citations = generate_research_citations(st.session_state.extracted_texts)
+                citations = generate_research_citations(st.session_state.extracted_texts, language)
                 st.session_state.citations = citations
                 st.session_state.paper.update_content(
                     "References", "\n\n".join(st.session_state.citations)
