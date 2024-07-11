@@ -646,15 +646,18 @@ try:
                 def stream_section_content(sections):
                     for title, content in sections.items():
                         if isinstance(content, str):
-                            # Retrieve passages related to the section
-                            retrieved_passages = retrieve_passages(
-                                title + ": " + content,
-                                st.session_state.index,
-                                st.session_state.vectorizer,
-                                st.session_state.preprocessed_texts
-                            )
-                            context = "\n\n".join(retrieved_passages)
-                            prompt_with_context = title + ": " + content + "\n\n" + context
+                            if st.session_state.index and st.session_state.vectorizer:
+                                # Retrieve passages related to the section
+                                retrieved_passages = retrieve_passages(
+                                    title + ": " + content,
+                                    st.session_state.index,
+                                    st.session_state.vectorizer,
+                                    st.session_state.preprocessed_texts
+                                )
+                                context = "\n\n".join(retrieved_passages)
+                                prompt_with_context = title + ": " + content + "\n\n" + context
+                            else:
+                                prompt_with_context = title + ": " + content
                             
                             # Split the prompt into smaller chunks
                             chunks = split_text(prompt_with_context)
@@ -681,11 +684,12 @@ try:
                 stream_section_content(paper_structure_json)
 
                 # Append extracted texts with citations
-                citations = generate_research_citations(st.session_state.extracted_texts, language)
-                st.session_state.citations = citations
-                st.session_state.paper.update_content(
-                    "References", "\n\n".join(st.session_state.citations)
-                )
+                if st.session_state.extracted_texts:
+                    citations = generate_research_citations(st.session_state.extracted_texts, language)
+                    st.session_state.citations = citations
+                    st.session_state.paper.update_content(
+                        "References", "\n\n".join(st.session_state.citations)
+                    )
 
             except json.JSONDecodeError:
                 st.error("Failed to decode the research paper structure. Please try again.")
