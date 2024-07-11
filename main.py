@@ -259,7 +259,7 @@ def generate_paper_title(prompt: str, language: str):
         prompt_language = "English"
         
     completion = st.session_state.groq.chat.completions.create(
-        model="llama3-70b-8192",
+        model="mixtral-8x7b-32768",
         messages=[
             {
                 "role": "system",
@@ -289,7 +289,7 @@ def generate_paper_structure(prompt: str, language: str):
         prompt_language = "English"
         
     completion = st.session_state.groq.chat.completions.create(
-        model="llama3-70b-8192",
+        model="mixtral-8x7b-32768",
         messages=[
             {
                 "role": "system",
@@ -316,7 +316,7 @@ def generate_paper_structure(prompt: str, language: str):
         input_tokens=usage.prompt_tokens,
         output_tokens=usage.completion_tokens,
         total_time=usage.total_time,
-        model_name="llama3-70b-8192",
+        model_name="mixtral-8x7b-32768",
     )
 
     return statistics_to_return, completion.choices[0].message.content
@@ -410,7 +410,7 @@ def generate_research_citations(extracted_texts, language: str):
             prompt_language = "English"
             
         citation = st.session_state.groq.chat.completions.create(
-            model="llama3-70b-8192",
+            model="mixtral-8x7b-32768",
             messages=[
                 {
                     "role": "system",
