@@ -449,7 +449,7 @@ if 'preprocessed_texts' not in st.session_state:
 
 st.write(
     """
-# GroqPaper: Write full research papers using llama3 (8b and 70b) on Groq
+# ResearchPaper: Write full research papers using AI
 """
 )
 
