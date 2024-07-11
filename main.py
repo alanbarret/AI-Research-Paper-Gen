@@ -482,6 +482,26 @@ def enable():
 def empty_st():
     st.empty()
 
+def split_text(text, max_tokens=1500):
+    """
+    Splits text into smaller chunks to avoid exceeding the API's size limit.
+    """
+    words = text.split()
+    chunks = []
+    current_chunk = []
+
+    for word in words:
+        current_chunk.append(word)
+        if len(current_chunk) >= max_tokens:
+            chunks.append(' '.join(current_chunk))
+            current_chunk = []
+
+    if current_chunk:
+        chunks.append(' '.join(current_chunk))
+
+    return chunks
+
+
 try:
     if st.button("End Generation and Download Paper"):
         if "paper" in st.session_state:
@@ -618,6 +638,7 @@ try:
                 print(json.dumps(paper_structure_json, indent=2))
 
                 st.session_state.paper.display_structure()
+                
     
                 def stream_section_content(sections):
                     for title, content in sections.items():
@@ -631,25 +652,29 @@ try:
                             )
                             context = "\n\n".join(retrieved_passages)
                             prompt_with_context = title + ": " + content + "\n\n" + context
+                            
+                            # Split the prompt into smaller chunks
+                            chunks = split_text(prompt_with_context)
 
-                            content_stream = generate_section(
-                                prompt_with_context, additional_instructions, language
-                            )
-                            for chunk in content_stream:
-                                # Check if GenerationStatistics data is returned instead of str tokens
-                                chunk_data = chunk
-                                if isinstance(chunk_data, GenerationStatistics):
-                                    total_generation_statistics.add(chunk_data)
+                            for chunk in chunks:
+                                content_stream = generate_section(
+                                    chunk, additional_instructions, language
+                                )
+                                for content_chunk in content_stream:
+                                    # Check if GenerationStatistics data is returned instead of str tokens
+                                    if isinstance(content_chunk, GenerationStatistics):
+                                        total_generation_statistics.add(content_chunk)
 
-                                    st.session_state.statistics_text = str(
-                                        total_generation_statistics
-                                    )
-                                    display_statistics()
+                                        st.session_state.statistics_text = str(
+                                            total_generation_statistics
+                                        )
+                                        display_statistics()
 
-                                elif chunk:
-                                    st.session_state.paper.update_content(title, chunk)
+                                    elif content_chunk:
+                                        st.session_state.paper.update_content(title, content_chunk)
                         elif isinstance(content, dict):
                             stream_section_content(content)
+
 
                 # Append extracted texts with citations
                 citations = generate_research_citations(st.session_state.extracted_texts, language)
