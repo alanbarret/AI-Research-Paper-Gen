@@ -622,13 +622,23 @@ try:
                 def stream_section_content(sections):
                     for title, content in sections.items():
                         if isinstance(content, str):
+                            # Retrieve passages related to the section
+                            retrieved_passages = retrieve_passages(
+                                title + ": " + content,
+                                st.session_state.index,
+                                st.session_state.vectorizer,
+                                st.session_state.preprocessed_texts
+                            )
+                            context = "\n\n".join(retrieved_passages)
+                            prompt_with_context = title + ": " + content + "\n\n" + context
+
                             content_stream = generate_section(
-                                title + ": " + content, additional_instructions, language
+                                prompt_with_context, additional_instructions, language
                             )
                             for chunk in content_stream:
                                 # Check if GenerationStatistics data is returned instead of str tokens
                                 chunk_data = chunk
-                                if type(chunk_data) == GenerationStatistics:
+                                if isinstance(chunk_data, GenerationStatistics):
                                     total_generation_statistics.add(chunk_data)
 
                                     st.session_state.statistics_text = str(
@@ -636,12 +646,10 @@ try:
                                     )
                                     display_statistics()
 
-                                elif chunk != None:
+                                elif chunk:
                                     st.session_state.paper.update_content(title, chunk)
                         elif isinstance(content, dict):
                             stream_section_content(content)
-
-                stream_section_content(paper_structure_json)
 
                 # Append extracted texts with citations
                 citations = generate_research_citations(st.session_state.extracted_texts, language)
