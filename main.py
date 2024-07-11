@@ -263,11 +263,11 @@ def generate_paper_title(prompt: str, language: str):
         messages=[
             {
                 "role": "system",
-                "content": f"Generate suitable research paper titles for the provided topics in {prompt_language}. There is only one generated paper title! Don't give any explanation or add any symbols, just write the title of the paper. The requirement for this title is that it must be between 7 and 25 words long, and it must be attractive enough!"
+                "content": f"اكتب عنوان بحث مناسب للموضوعات التالية باللغة {prompt_language}. هناك عنوان بحث واحد فقط! لا تكتب أي شرح أو تضيف أي رموز، فقط اكتب عنوان البحث. يجب أن يكون هذا العنوان بين 7 و 25 كلمة، ويجب أن يكون جذابًا بدرجة كافية."
             },
             {
                 "role": "user",
-                "content": f"Generate a research paper title for the following topic in {prompt_language}. There is only one generated paper title! Don't give any explanation or add any symbols, just write the title of the paper. The requirement for this title is that it must be at least 7 words and 25 words long, and it must be attractive enough:\n\n{prompt}"
+                "content": f"اكتب عنوان بحث للموضوع التالي باللغة {prompt_language}. هناك عنوان بحث واحد فقط! لا تكتب أي شرح أو تضيف أي رموز، فقط اكتب عنوان البحث. يجب أن يكون هذا العنوان بين 7 و 25 كلمة، ويجب أن يكون جذابًا بدرجة كافية:\n\n{prompt}"
             }
         ],
         temperature=0.7,
@@ -293,11 +293,11 @@ def generate_paper_structure(prompt: str, language: str):
         messages=[
             {
                 "role": "system",
-                "content": f'Write in JSON format in {prompt_language}:\n\n{{"Title of section goes here":"Description of section goes here",\n"Title of section goes here":{{"Title of section goes here":"Description of section goes here","Title of section goes here":"Description of section goes here","Title of section goes here":"Description of section goes here"}}}}',
+                "content": f'اكتب بصيغة JSON باللغة {prompt_language}:\n\n{{"عنوان القسم هنا":"وصف القسم هنا",\n"عنوان القسم هنا":{{"عنوان القسم هنا":"وصف القسم هنا","عنوان القسم هنا":"وصف القسم هنا","عنوان القسم هنا":"وصف القسم هنا"}}}}'
             },
             {
                 "role": "user",
-                "content": f"Write a comprehensive structure, omiting introduction and conclusion sections (forward, author's note, summary), for a long (>300 page) research paper in {prompt_language}. It is very important that use the following subject and additional instructions to write the paper. \n\n<subject>{prompt}</subject>\n\n<additional_instructions>{additional_instructions}</additional_instructions>",
+                "content": f"اكتب هيكلًا شاملاً، مع تجنب الأقسام الافتتاحية والختامية (مثل المقدمة، ملاحظة المؤلف، الملخص)، لبحث طويل (أكثر من 300 صفحة) باللغة {prompt_language}. من المهم جدًا استخدام الموضوع والتعليمات الإضافية التالية لكتابة البحث.\n\n<الموضوع>{prompt}</الموضوع>\n\n<تعليمات_إضافية>{additional_instructions}</تعليمات_إضافية>"
             },
         ],
         temperature=0.3,
@@ -331,11 +331,11 @@ def generate_section(prompt: str, additional_instructions: str, language: str):
         messages=[
             {
                 "role": "system",
-                "content": f"You are an expert writer. Generate a long, comprehensive, structured chapter for the section provided in {prompt_language}. If additional instructions are provided, consider them very important. Only output the content.",
+                "content": f"أنت كاتب خبير. اكتب فصلًا طويلًا وشاملًا ومنظمًا للقسم المقدم باللغة {prompt_language}. إذا كانت هناك تعليمات إضافية، فاعتبرها مهمة جدًا. قدم المحتوى فقط."
             },
             {
                 "role": "user",
-                "content": f"Generate a long, comprehensive, structured chapter in {prompt_language}. Use the following section and important instructions:\n\n<section_title>{prompt}</section_title>\n\n<additional_instructions>{additional_instructions}</additional_instructions>",
+                "content": f"اكتب فصلًا طويلًا وشاملًا ومنظمًا باللغة {prompt_language}. استخدم القسم التالي والتعليمات المهمة:\n\n<عنوان_القسم>{prompt}</عنوان_القسم>\n\n<تعليمات_إضافية>{additional_instructions}</تعليمات_إضافية>"
             },
         ],
         temperature=0.3,
@@ -390,11 +390,11 @@ def generate_research_citations(extracted_texts, language: str):
             messages=[
                 {
                     "role": "system",
-                    "content": f"Generate proper citations in APA format for the given extracted text from a research paper in {prompt_language}."
+                    "content": f"أنشئ اقتباسات صحيحة بتنسيق APA للنص المستخرج المقدم من ورقة بحث باللغة {prompt_language}."
                 },
                 {
                     "role": "user",
-                    "content": f"Generate a citation for the following text in {prompt_language}:\n\n{text}"
+                    "content": f"أنشئ اقتباسًا للنص التالي باللغة {prompt_language}:\n\n{text}"
                 }
             ],
             temperature=0.7,
@@ -702,3 +702,4 @@ except Exception as e:
 
     if st.button("Clear"):
         st.rerun()
+
