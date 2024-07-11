@@ -11,9 +11,8 @@ import faiss
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-import tempfile
 
-# Load .env file to environment
+# load .env file to environment
 load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", None)
@@ -24,7 +23,6 @@ if "api_key" not in st.session_state:
 if "groq" not in st.session_state:
     if GROQ_API_KEY:
         st.session_state.groq = Groq()
-
 
 class GenerationStatistics:
     def __init__(
@@ -85,7 +83,6 @@ class GenerationStatistics:
             f"| Tokens          | {self.input_tokens}            | {self.output_tokens}            | {self.input_tokens + self.output_tokens}            |\n"
             f"| Inference Time (s) | {self.input_time:.2f}            | {self.output_time:.2f}            | {self.total_time:.2f}            |"
         )
-
 
 class ResearchPaper:
     def __init__(self, paper_title, structure):
@@ -158,7 +155,6 @@ class ResearchPaper:
                 markdown_content += self.get_markdown_content(content, level + 1)
         return markdown_content
 
-
 def create_markdown_file(content: str) -> BytesIO:
     """
     Create a Markdown file from the provided content.
@@ -168,86 +164,83 @@ def create_markdown_file(content: str) -> BytesIO:
     markdown_file.seek(0)
     return markdown_file
 
-
-def create_pdf_file(content: str) -> str:
+def create_pdf_file(content: str) -> BytesIO:
     """
     Create a PDF file from the provided Markdown content.
     Converts Markdown to styled HTML, then HTML to PDF.
     """
-    try:
-        html_content = markdown(content, extensions=["extra", "codehilite"])
 
-        styled_html = f"""
-        <html>
-            <head>
-                <style>
-                    @page {{
-                        margin: 2cm;
-                    }}
-                    body {{
-                        font-family: Arial, sans-serif;
-                        line-height: 1.6;
-                        font-size: 12pt;
-                    }}
-                    h1, h2, h3, h4, h5, h6 {{
-                        color: #333366;
-                        margin-top: 1em;
-                        margin-bottom: 0.5em;
-                    }}
-                    p {{
-                        margin-bottom: 0.5em;
-                    }}
-                    code {{
-                        background-color: #f4f4f4;
-                        padding: 2px 4px;
-                        border-radius: 4px;
-                        font-family: monospace;
-                        font-size: 0.9em;
-                    }}
-                    pre {{
-                        background-color: #f4f4f4;
-                        padding: 1em;
-                        border-radius: 4px;
-                        white-space: pre-wrap;
-                        word-wrap: break-word;
-                    }}
-                    blockquote {{
-                        border-left: 4px solid #ccc;
-                        padding-left: 1em;
-                        margin-left: 0;
-                        font-style: italic;
-                    }}
-                    table {{
-                        border-collapse: collapse;
-                        width: 100%;
-                        margin-bottom: 1em;
-                    }}
-                    th, td {{
-                        border: 1px solid #ddd;
-                        padding: 8px;
-                        text-align: left;
-                    }}
-                    th {{
-                        background-color: #f2f2f2;
-                    }}
-                    input, textarea {{
-                        border-color: #4A90E2 !important;
-                    }}
-                </style>
-            </head>
-            <body>
-                {html_content}
-            </body>
-        </html>
-        """
+    html_content = markdown(content, extensions=["extra", "codehilite"])
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-            HTML(string=styled_html).write_pdf(tmp_file.name)
-            tmp_file.seek(0)
-            return tmp_file.name
-    except Exception as e:
-        st.error(f"Error creating PDF file: {e}")
-        return None
+    styled_html = f"""
+    <html>
+        <head>
+            <style>
+                @page {{
+                    margin: 2cm;
+                }}
+                body {{
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    font-size: 12pt;
+                }}
+                h1, h2, h3, h4, h5, h6 {{
+                    color: #333366;
+                    margin-top: 1em;
+                    margin-bottom: 0.5em;
+                }}
+                p {{
+                    margin-bottom: 0.5em;
+                }}
+                code {{
+                    background-color: #f4f4f4;
+                    padding: 2px 4px;
+                    border-radius: 4px;
+                    font-family: monospace;
+                    font-size: 0.9em;
+                }}
+                pre {{
+                    background-color: #f4f4f4;
+                    padding: 1em;
+                    border-radius: 4px;
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                }}
+                blockquote {{
+                    border-left: 4px solid #ccc;
+                    padding-left: 1em;
+                    margin-left: 0;
+                    font-style: italic;
+                }}
+                table {{
+                    border-collapse: collapse;
+                    width: 100%;
+                    margin-bottom: 1em;
+                }}
+                th, td {{
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                }}
+                th {{
+                    background-color: #f2f2f2;
+                }}
+                input, textarea {{
+                    border-color: #4A90E2 !important;
+                }}
+            </style>
+        </head>
+        <body>
+            {html_content}
+        </body>
+    </html>
+    """
+
+    pdf_buffer = BytesIO()
+    HTML(string=styled_html).write_pdf(pdf_buffer)
+    pdf_buffer.seek(0)
+
+    return pdf_buffer
 
 def generate_paper_title(prompt: str):
     """
@@ -449,7 +442,7 @@ if 'preprocessed_texts' not in st.session_state:
 
 st.write(
     """
-# ResearchPaper: Write full research papers using AI
+# GroqPaper: Write full research papers using llama3 (8b and 70b) on Groq
 """
 )
 
@@ -477,18 +470,13 @@ try:
             )
 
             # Create pdf file (styled)
-            pdf_file_path = create_pdf_file(st.session_state.paper.get_markdown_content())
-            if pdf_file_path:
-                with open(pdf_file_path, "rb") as pdf_file:
-                    pdf_data = pdf_file.read()
-                st.download_button(
-                    label="Download PDF",
-                    data=pdf_data,
-                    file_name=f'{st.session_state.paper_title}.pdf',
-                    mime='application/pdf'
-                )
-            else:
-                st.error("Failed to generate the PDF file.")
+            pdf_file = create_pdf_file(st.session_state.paper.get_markdown_content())
+            st.download_button(
+                label="Download PDF",
+                data=pdf_file,
+                file_name=f'{st.session_state.paper_title}.pdf',
+                mime='application/pdf'
+            )
         else:
             raise ValueError("Please generate content first before downloading the paper.")
 
