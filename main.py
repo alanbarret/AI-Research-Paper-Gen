@@ -54,8 +54,8 @@ def index_texts(texts):
     """
     Index texts using FAISS.
     """
-    vectorizer = TfidfVectorizer().fit_transform(texts)
-    vectors = vectorizer.toarray()
+    vectorizer = TfidfVectorizer()
+    vectors = vectorizer.fit_transform(texts).toarray()
     index = faiss.IndexFlatL2(vectors.shape[1])
     index.add(vectors)
     return index, vectorizer
@@ -67,6 +67,7 @@ def retrieve_passages(query, index, vectorizer, texts, top_k=5):
     """
     query_vector = vectorizer.transform([query]).toarray()
     distances, indices = index.search(query_vector, top_k)
+
     retrieved_passages = [texts[i] for i in indices[0]]
     return retrieved_passages
 
