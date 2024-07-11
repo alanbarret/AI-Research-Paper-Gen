@@ -34,7 +34,7 @@ class GenerationStatistics:
         input_tokens=0,
         output_tokens=0,
         total_time=0,
-        model_name="llama3-8b-8192",
+        model_name="mixtral-8x7b-32768",
     ):
         self.input_time = input_time
         self.output_time = output_time
@@ -327,7 +327,7 @@ def generate_section(prompt: str, additional_instructions: str, language: str):
         prompt_language = "English"
         
     stream = st.session_state.groq.chat.completions.create(
-        model="llama3-8b-8192",
+        model="mixtral-8x7b-32768",
         messages=[
             {
                 "role": "system",
@@ -359,7 +359,7 @@ def generate_section(prompt: str, additional_instructions: str, language: str):
                 input_tokens=usage.prompt_tokens,
                 output_tokens=usage.completion_tokens,
                 total_time=usage.total_time,
-                model_name="llama3-8b-8192",
+                model_name="mixtral-8x7b-32768",
             )
             yield statistics_to_return
 
@@ -604,7 +604,7 @@ try:
             large_model_generation_statistics, paper_structure = generate_paper_structure(topic_text, language)
 
             total_generation_statistics = GenerationStatistics(
-                model_name="llama3-8b-8192"
+                model_name="mixtral-8x7b-32768"
             )
 
             try:
