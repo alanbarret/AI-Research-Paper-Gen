@@ -25,6 +25,50 @@ if "groq" not in st.session_state:
     if GROQ_API_KEY:
         st.session_state.groq = Groq()
 
+# Function to extract text from PDF files
+def extract_text_from_pdf(file):
+    """
+    Extracts text from the provided PDF file.
+    """
+    document = fitz.open(stream=file.read(), filetype="pdf")
+    text = ""
+    for page_num in range(len(document)):
+        page = document.load_page(page_num)
+        text += page.get_text("text")
+    return text
+
+# Function to preprocess texts for indexing
+def preprocess_texts(texts):
+    """
+    Preprocess texts for indexing.
+    """
+    preprocessed_texts = []
+    for text in texts:
+        # Split text into smaller chunks for indexing
+        chunks = text.split("\n\n")
+        preprocessed_texts.extend(chunks)
+    return preprocessed_texts
+
+# Function to index texts using FAISS
+def index_texts(texts):
+    """
+    Index texts using FAISS.
+    """
+    vectorizer = TfidfVectorizer().fit_transform(texts)
+    vectors = vectorizer.toarray()
+    index = faiss.IndexFlatL2(vectors.shape[1])
+    index.add(vectors)
+    return index, vectorizer
+
+# Function to retrieve top-k passages relevant to the query
+def retrieve_passages(query, index, vectorizer, texts, top_k=5):
+    """
+    Retrieve top-k passages relevant to the query.
+    """
+    query_vector = vectorizer.transform([query]).toarray()
+    distances, indices = index.search(query_vector, top_k)
+    retrieved_passages = [texts[i] for i in indices[0]]
+    return retrieved_passages
 
 class GenerationStatistics:
     def __init__(
@@ -363,17 +407,6 @@ def generate_section(prompt: str, additional_instructions: str, language: str):
             )
             yield statistics_to_return
 
-def extract_text_from_pdf(file):
-    """
-    Extracts text from the provided PDF file.
-    """
-    document = fitz.open(stream=file.read(), filetype="pdf")
-    text = ""
-    for page_num in range(len(document)):
-        page = document.load_page(page_num)
-        text += page.get_text("text")
-    return text
-
 def generate_research_citations(extracted_texts, language: str):
     """
     Generate proper citations for the extracted texts.
@@ -405,36 +438,6 @@ def generate_research_citations(extracted_texts, language: str):
         )
         citations.append(citation.choices[0].message.content.strip())
     return citations
-
-def preprocess_texts(texts):
-    """
-    Preprocess texts for indexing.
-    """
-    preprocessed_texts = []
-    for text in texts:
-        # Split text into smaller chunks for indexing
-        chunks = text.split("\n\n")
-        preprocessed_texts.extend(chunks)
-    return preprocessed_texts
-
-def index_texts(texts):
-    """
-    Index texts using FAISS.
-    """
-    vectorizer = TfidfVectorizer().fit_transform(texts)
-    vectors = vectorizer.toarray()
-    index = faiss.IndexFlatL2(vectors.shape[1])
-    index.add(vectors)
-    return index, vectorizer
-
-def retrieve_passages(query, index, vectorizer, texts, top_k=5):
-    """
-    Retrieve top-k passages relevant to the query.
-    """
-    query_vector = vectorizer.transform([query]).toarray()
-    distances, indices = index.search(query_vector, top_k)
-    retrieved_passages = [texts[i] for i in indices[0]]
-    return retrieved_passages
 
 # Initialize
 if "button_disabled" not in st.session_state:
@@ -622,8 +625,18 @@ try:
                 def stream_section_content(sections):
                     for title, content in sections.items():
                         if isinstance(content, str):
+                            # Retrieve passages related to the section
+                            retrieved_passages = retrieve_passages(
+                                title + ": " + content,
+                                st.session_state.index,
+                                st.session_state.vectorizer,
+                                st.session_state.preprocessed_texts
+                            )
+                            context = "\n\n".join(retrieved_passages)
+                            prompt_with_context = title + ": " + content + "\n\n" + context
+                            
                             content_stream = generate_section(
-                                title + ": " + content, additional_instructions, language
+                                prompt_with_context, additional_instructions, language
                             )
                             for chunk in content_stream:
                                 # Check if GenerationStatistics data is returned instead of str tokens
