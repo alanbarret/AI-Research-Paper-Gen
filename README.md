@@ -51,7 +51,7 @@ python3 -m streamlit run main.py
 ### Technologies
 
 - Streamlit
-- Mistral 8x7b on Groq Cloud
+- Mixtral 8x7b on Groq Cloud
 
 ### Limitations
 
