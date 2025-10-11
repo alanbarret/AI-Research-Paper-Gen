@@ -289,7 +289,7 @@ def generate_paper_structure(prompt: str, language: str):
         prompt_language = "English"
         
     completion = st.session_state.groq.chat.completions.create(
-        model="mixtral-8x7b-32768",
+        model="openai/gpt-oss-20b",
         messages=[
             {
                 "role": "system",
