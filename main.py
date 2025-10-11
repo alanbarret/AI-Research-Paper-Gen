@@ -34,7 +34,7 @@ class GenerationStatistics:
         input_tokens=0,
         output_tokens=0,
         total_time=0,
-        model_name="mixtral-8x7b-32768",
+        model_name="openai/gpt-oss-20b",
     ):
         self.input_time = input_time
         self.output_time = output_time
@@ -259,7 +259,7 @@ def generate_paper_title(prompt: str, language: str):
         prompt_language = "English"
         
     completion = st.session_state.groq.chat.completions.create(
-        model="mixtral-8x7b-32768",
+        model="openai/gpt-oss-20b",
         messages=[
             {
                 "role": "system",
@@ -316,7 +316,7 @@ def generate_paper_structure(prompt: str, language: str):
         input_tokens=usage.prompt_tokens,
         output_tokens=usage.completion_tokens,
         total_time=usage.total_time,
-        model_name="mixtral-8x7b-32768",
+        model_name="openai/gpt-oss-20b",
     )
 
     return statistics_to_return, completion.choices[0].message.content
@@ -328,7 +328,7 @@ def generate_section(prompt: str, additional_instructions: str, language: str):
         prompt_language = "English"
         
     stream = st.session_state.groq.chat.completions.create(
-        model="mixtral-8x7b-32768",
+        model="openai/gpt-oss-20b",
         messages=[
             {
                 "role": "system",
@@ -383,7 +383,8 @@ def generate_section(prompt: str, additional_instructions: str, language: str):
                 input_tokens=usage.prompt_tokens,
                 output_tokens=usage.completion_tokens,
                 total_time=usage.total_time,
-                model_name="mixtral-8x7b-32768",
+                model_name="openai/gpt-oss-20b
+                ",
             )
             yield statistics_to_return
 
@@ -410,7 +411,7 @@ def generate_research_citations(extracted_texts, language: str):
             prompt_language = "English"
             
         citation = st.session_state.groq.chat.completions.create(
-            model="mixtral-8x7b-32768",
+            model="openai/gpt-oss-20b",
             messages=[
                 {
                     "role": "system",
@@ -652,7 +653,7 @@ try:
             large_model_generation_statistics, paper_structure = generate_paper_structure(topic_text, language)
 
             total_generation_statistics = GenerationStatistics(
-                model_name="mixtral-8x7b-32768"
+                model_name="openai/gpt-oss-20b"
             )
 
             try:
