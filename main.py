@@ -383,8 +383,7 @@ def generate_section(prompt: str, additional_instructions: str, language: str):
                 input_tokens=usage.prompt_tokens,
                 output_tokens=usage.completion_tokens,
                 total_time=usage.total_time,
-                model_name="openai/gpt-oss-20b
-                ",
+                model_name="openai/gpt-oss-20b",
             )
             yield statistics_to_return
 
